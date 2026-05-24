@@ -1,0 +1,75 @@
+﻿@model WebApplication1.Models.HomeIndexViewModel
+
+@{
+    ViewData["Title"] = "Inicio - CRUD";
+}
+
+<div class="container">
+    <h1 class="mt-4">Administración: Categorías y Productos</h1>
+
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <h3>Categorías</h3>
+            <p>
+                <a asp-controller="Categories" asp-action="Create" class="btn btn-success">Crear categoría</a>
+            </p>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nombre</th> 
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Categories)
+                    {
+                        <tr>
+                            <td>@item.CategoryId</td>
+                            <td>@item.Name</td>
+                            <td>
+                                <a asp-controller="Categories" asp-action="Details" asp-route-id="@item.CategoryId" class="btn btn-sm btn-primary">Detalles</a>
+                                <a asp-controller="Categories" asp-action="Edit" asp-route-id="@item.CategoryId" class="btn btn-sm btn-warning">Editar</a>
+                                <a asp-controller="Categories" asp-action="Delete" asp-route-id="@item.CategoryId" class="btn btn-sm btn-danger">Eliminar</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-6">
+            <h3>Productos</h3>
+            <p>
+                <a asp-controller="Products" asp-action="Create" class="btn btn-success">Crear producto</a>
+            </p>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Categoría</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Products)
+                    {
+                        <tr>
+                            <td>@item.ProductId</td>
+                            <td>@item.Name</td>
+                            <td>@item.Price.ToString("C")</td>
+                            <td>@(item.Category?.Name ?? "-")</td>
+                            <td>
+                                <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId" class="btn btn-sm btn-primary">Detalles</a>
+                                <a asp-controller="Products" asp-action="Edit" asp-route-id="@item.ProductId" class="btn btn-sm btn-warning">Editar</a>
+                                <a asp-controller="Products" asp-action="Delete" asp-route-id="@item.ProductId" class="btn btn-sm btn-danger">Eliminar</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
