@@ -1,46 +1,212 @@
 ﻿@model WebApplication1.Models.Venta
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Registrar Venta POS";
 }
 
-<h1>Create</h1>
-
-<h4>Venta</h4>
-<hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Fecha" class="control-label"></label>
-                <input asp-for="Fecha" class="form-control" />
-                <span asp-validation-for="Fecha" class="text-danger"></span>
+    <div class="col-md-5">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-dark text-white fw-bold">
+                <i class="bi bi-receipt-cutoff me-2"></i>Datos de la Venta
             </div>
-            <div class="form-group">
-                <label asp-for="Total" class="control-label"></label>
-                <input asp-for="Total" class="form-control" />
-                <span asp-validation-for="Total" class="text-danger"></span>
+            <div class="card-body row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold small">Cliente</label>
+                    <select id="ClienteId" class="form-select form-select-sm" asp-items="ViewBag.ClienteId">
+                        <option value="">-- Seleccionar Cliente --</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold small">Centro de Costo</label>
+                    <select id="CentroCostoId" class="form-select form-select-sm" asp-items="ViewBag.CentroCostoId">
+                        <option value="">-- Seleccionar Centro --</option>
+                    </select>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label fw-bold small">Fecha</label>
+                    <input id="Fecha" type="datetime-local" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="ClienteId" class="control-label"></label>
-                <select asp-for="ClienteId" class ="form-control" asp-items="ViewBag.ClienteId"></select>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-primary text-white fw-bold">
+                <i class="bi bi-box-seam me-2"></i>Agregar Producto
             </div>
-            <div class="form-group">
-                <label asp-for="CentroCostoId" class="control-label"></label>
-                <select asp-for="CentroCostoId" class ="form-control" asp-items="ViewBag.CentroCostoId"></select>
+            <div class="card-body row g-3">
+                <div class="col-md-12">
+                    <label class="form-label fw-bold small">Producto</label>
+                    <select id="SelectorProducto" class="form-select form-select-sm">
+                        <option value="">-- Seleccionar Producto --</option>
+                        @foreach (var item in (IEnumerable<dynamic>)ViewBag.ProductosSelectList)
+                        {
+                            <option value="@item.Value" data-precio="@item.Precio">@item.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold small">Precio Unitario</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">$</span>
+                        <input id="PrecioUnitario" type="number" class="form-control" readonly />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold small">Cantidad</label>
+                    <input id="Cantidad" type="number" class="form-control form-control-sm" value="1" min="1" />
+                </div>
+                <div class="col-md-12 text-end">
+                    <button type="button" id="btnAgregarProducto" class="btn btn-success btn-sm w-100 fw-bold">
+                        <i class="bi bi-plus-circle me-1"></i> Agregar al Detalle
+                    </button>
+                </div>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-secondary text-white fw-bold d-flex justify-content-between">
+                <span><i class="bi bi-list-stars me-2"></i>Artículos Agregados</span>
+                <span id="contadorItems" class="badge bg-light text-dark">0 productos</span>
             </div>
-        </form>
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-sm table-hover align-middle" id="tablaDetalle">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-end">Precio</th>
+                                <th class="text-center" style="width: 80px;">Cant.</th>
+                                <th class="text-end">Subtotal</th>
+                                <th class="text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="border-top pt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="h5 mb-0 fw-bold text-muted">Total General:</span>
+                        <span class="h3 mb-0 fw-bold text-success" id="lblTotalGeneral" data-raw="0">$ 0.00</span>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-sm w-100">Cancelar</a>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" id="btnGuardarVenta" class="btn btn-primary btn-sm w-100 fw-bold" disabled>
+                                <i class="bi bi-check-all me-1"></i> Confirmar Venta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        let carrito = [];
+        const selectorProducto = document.getElementById("SelectorProducto");
+        const txtPrecioUnitario = document.getElementById("PrecioUnitario");
+        const txtCantidad = document.getElementById("Cantidad");
+        const btnAgregar = document.getElementById("btnAgregarProducto");
+        const tablaCuerpo = document.querySelector("#tablaDetalle tbody");
+        const lblTotalGeneral = document.getElementById("lblTotalGeneral");
+        const btnGuardarVenta = document.getElementById("btnGuardarVenta");
+        const lblContador = document.getElementById("contadorItems");
+
+        selectorProducto.addEventListener("change", () => {
+            const opcion = selectorProducto.options[selectorProducto.selectedIndex];
+            const precio = opcion.getAttribute("data-precio");
+            // Se fuerza el valor a float para evitar strings erróneos
+            txtPrecioUnitario.value = precio ? parseFloat(precio) : "";
+        });
+
+        btnAgregar.addEventListener("click", () => {
+            const productId = parseInt(selectorProducto.value);
+            const nombre = selectorProducto.options[selectorProducto.selectedIndex].text;
+            const precio = parseFloat(txtPrecioUnitario.value);
+            const cantidad = parseInt(txtCantidad.value);
+
+            if (!productId || isNaN(precio) || isNaN(cantidad) || cantidad <= 0) {
+                alert("Por favor, seleccione un producto y asigne una cantidad válida.");
+                return;
+            }
+
+            const existe = carrito.find(x => x.productId === productId);
+            if (existe) {
+                existe.cantidad += cantidad;
+            } else {
+                carrito.push({ productId, nombre, precio, cantidad });
+            }
+
+            selectorProducto.value = "";
+            txtPrecioUnitario.value = "";
+            txtCantidad.value = 1;
+            actualizarInterfaz();
+        });
+
+        function eliminarItem(id) {
+            carrito = carrito.filter(x => x.productId !== id);
+            actualizarInterfaz();
+        }
+
+        function actualizarInterfaz() {
+            tablaCuerpo.innerHTML = "";
+            let totalGeneral = 0;
+
+            carrito.forEach(item => {
+                const subtotal = item.precio * item.cantidad;
+                totalGeneral += subtotal;
+                tablaCuerpo.innerHTML += `<tr>
+                    <td>${item.nombre}</td>
+                    <td class="text-end">$ ${item.precio.toLocaleString('es-CO')}</td>
+                    <td class="text-center">${item.cantidad}</td>
+                    <td class="text-end fw-bold">$ ${subtotal.toLocaleString('es-CO')}</td>
+                    <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarItem(${item.productId})">X</button></td>
+                </tr>`;
+            });
+
+            // Actualizamos la etiqueta visual y guardamos el valor numérico puro en el atributo 'data-raw'
+            lblTotalGeneral.innerText = `$ ${totalGeneral.toLocaleString('es-CO', { minimumFractionDigits: 0 })}`;
+            lblTotalGeneral.dataset.raw = totalGeneral;
+
+            lblContador.innerText = `${carrito.length} producto(s)`;
+            btnGuardarVenta.disabled = carrito.length === 0;
+        }
+
+        btnGuardarVenta.addEventListener("click", async () => {
+            // Obtenemos el valor puro sin signos ni comas usando el atributo 'data-raw'
+            const totalFinal = parseFloat(lblTotalGeneral.dataset.raw);
+
+            const payload = {
+                ClienteId: document.getElementById("ClienteId").value ? parseInt(document.getElementById("ClienteId").value) : null,
+                CentroCostoId: document.getElementById("CentroCostoId").value ? parseInt(document.getElementById("CentroCostoId").value) : null,
+                Fecha: document.getElementById("Fecha").value,
+                Total: totalFinal,
+                Detalles: carrito.map(x => ({
+                    ProductId: x.productId,
+                    Cantidad: x.cantidad,
+                    PrecioUnitario: x.precio
+                }))
+            };
+
+            const response = await fetch('@Url.Action("CreatePOS", "Ventas")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                window.location.href = '@Url.Action("Index", "Ventas")';
+            } else {
+                alert("Error al guardar la venta en el servidor.");
+            }
+        });
+    </script>
 }

@@ -49,27 +49,58 @@ namespace WebApplication1.Controllers
         // GET: Ventas/Create
         public IActionResult Create()
         {
-            ViewData["CentroCostoId"] = new SelectList(_context.CentrosCostos, "CentroCostoId", "CentroCostoId");
-            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "ClienteId");
+            // Cambiados los campos de texto para mostrar "Nombre" en lugar del ID numérico
+            ViewData["CentroCostoId"] = new SelectList(_context.CentrosCostos, "CentroCostoId", "Nombre");
+            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "Nombre");
+
+            // Carga la lista de productos con sus precios de catálogo para el selector dinámico de JavaScript
+            ViewBag.ProductosSelectList = _context.Products
+                .Select(p => new {
+                    Value = p.ProductId,
+                    Text = p.Name,
+                    Precio = p.Price
+                }).ToList();
+
             return View();
         }
 
-        // POST: Ventas/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Ventas/CreatePOS (Lógica del Punto de Venta Dinámico)
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VentaId,Fecha,Total,ClienteId,CentroCostoId")] Venta venta)
+        public async Task<IActionResult> CreatePOS([FromBody] VentaPOSViewModel model)
         {
-            if (ModelState.IsValid)
+            if (model == null || model.Detalles == null || !model.Detalles.Any())
             {
-                _context.Add(venta);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return BadRequest("La venta debe contener al menos un producto en el detalle.");
             }
-            ViewData["CentroCostoId"] = new SelectList(_context.CentrosCostos, "CentroCostoId", "CentroCostoId", venta.CentroCostoId);
-            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "ClienteId", venta.ClienteId);
-            return View(venta);
+
+            // 1. Crear y registrar la cabecera maestro de la Venta
+            var nuevaVenta = new Venta
+            {
+                ClienteId = model.ClienteId,
+                CentroCostoId = model.CentroCostoId,
+                Fecha = model.Fecha,
+                Total = model.Total
+            };
+
+            _context.Ventas.Add(nuevaVenta);
+            await _context.SaveChangesAsync(); // SQL Server genera e inserta automáticamente el VentaId aquí
+
+            // 2. Mapear e insertar el lote completo de detalles vinculados
+            foreach (var item in model.Detalles)
+            {
+                var detalle = new DetalleVenta
+                {
+                    VentaId = nuevaVenta.VentaId, // Llave foránea sincronizada
+                    ProductId = item.ProductId,
+                    Cantidad = item.Cantidad,
+                    PrecioUnitario = item.PrecioUnitario
+                };
+                _context.DetalleVentas.Add(detalle);
+            }
+
+            await _context.SaveChangesAsync(); // Impacta la base de datos con los registros del detalle
+
+            return Ok();
         }
 
         // GET: Ventas/Edit/5
@@ -85,14 +116,12 @@ namespace WebApplication1.Controllers
             {
                 return NotFound();
             }
-            ViewData["CentroCostoId"] = new SelectList(_context.CentrosCostos, "CentroCostoId", "CentroCostoId", venta.CentroCostoId);
-            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "ClienteId", venta.ClienteId);
+            ViewData["CentroCostoId"] = new SelectList(_context.CentrosCostos, "CentroCostoId", "Nombre", venta.CentroCostoId);
+            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "Nombre", venta.ClienteId);
             return View(venta);
         }
 
         // POST: Ventas/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("VentaId,Fecha,Total,ClienteId,CentroCostoId")] Venta venta)
@@ -122,8 +151,8 @@ namespace WebApplication1.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CentroCostoId"] = new SelectList(_context.CentrosCostos, "CentroCostoId", "CentroCostoId", venta.CentroCostoId);
-            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "ClienteId", venta.ClienteId);
+            ViewData["CentroCostoId"] = new SelectList(_context.CentrosCostos, "CentroCostoId", "Nombre", venta.CentroCostoId);
+            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "Nombre", venta.ClienteId);
             return View(venta);
         }
 
