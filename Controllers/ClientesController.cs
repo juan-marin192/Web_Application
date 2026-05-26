@@ -6,25 +6,26 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
+using WebApplication1.Models;
 
-namespace WebApplication1.Models
+namespace WebApplication1.Controllers
 {
-    public class CategoriesController : Controller
+    public class ClientesController : Controller
     {
         private readonly SampleDbContext _context;
 
-        public CategoriesController(SampleDbContext context)
+        public ClientesController(SampleDbContext context)
         {
             _context = context;
         }
 
-        // GET: Categories
+        // GET: Clientes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Categories.ToListAsync());
+            return View(await _context.Clientes.ToListAsync());
         }
 
-        // GET: Categories/Details/5
+        // GET: Clientes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -32,39 +33,39 @@ namespace WebApplication1.Models
                 return NotFound();
             }
 
-            var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.CategoryId == id);
-            if (category == null)
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(m => m.ClienteId == id);
+            if (cliente == null)
             {
                 return NotFound();
             }
 
-            return View(category);
+            return View(cliente);
         }
 
-        // GET: Categories/Create
+        // GET: Clientes/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Categories/Create
+        // POST: Clientes/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CategoryId,Name")] Category category)
+        public async Task<IActionResult> Create([Bind("ClienteId,Nombre,Documento,Telefono")] Cliente cliente)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(category);
+                _context.Add(cliente);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(category);
+            return View(cliente);
         }
 
-        // GET: Categories/Edit/5
+        // GET: Clientes/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -72,22 +73,22 @@ namespace WebApplication1.Models
                 return NotFound();
             }
 
-            var category = await _context.Categories.FindAsync(id);
-            if (category == null)
+            var cliente = await _context.Clientes.FindAsync(id);
+            if (cliente == null)
             {
                 return NotFound();
             }
-            return View(category);
+            return View(cliente);
         }
 
-        // POST: Categories/Edit/5
+        // POST: Clientes/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CategoryId,Name")] Category category)
+        public async Task<IActionResult> Edit(int id, [Bind("ClienteId,Nombre,Documento,Telefono")] Cliente cliente)
         {
-            if (id != category.CategoryId)
+            if (id != cliente.ClienteId)
             {
                 return NotFound();
             }
@@ -96,12 +97,12 @@ namespace WebApplication1.Models
             {
                 try
                 {
-                    _context.Update(category);
+                    _context.Update(cliente);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CategoryExists(category.CategoryId))
+                    if (!ClienteExists(cliente.ClienteId))
                     {
                         return NotFound();
                     }
@@ -112,10 +113,10 @@ namespace WebApplication1.Models
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(category);
+            return View(cliente);
         }
 
-        // GET: Categories/Delete/5
+        // GET: Clientes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -123,34 +124,34 @@ namespace WebApplication1.Models
                 return NotFound();
             }
 
-            var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.CategoryId == id);
-            if (category == null)
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(m => m.ClienteId == id);
+            if (cliente == null)
             {
                 return NotFound();
             }
 
-            return View(category);
+            return View(cliente);
         }
 
-        // POST: Categories/Delete/5
+        // POST: Clientes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
-            if (category != null)
+            var cliente = await _context.Clientes.FindAsync(id);
+            if (cliente != null)
             {
-                _context.Categories.Remove(category);
+                _context.Clientes.Remove(cliente);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CategoryExists(int id)
+        private bool ClienteExists(int id)
         {
-            return _context.Categories.Any(e => e.CategoryId == id);
+            return _context.Clientes.Any(e => e.ClienteId == id);
         }
     }
 }

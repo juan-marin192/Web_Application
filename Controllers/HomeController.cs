@@ -19,13 +19,26 @@ namespace WebApplication1.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // 1. Consultas originales
             var categories = await _context.Categories.ToListAsync();
             var products = await _context.Products.Include(p => p.Category).ToListAsync();
 
+            // 2. Nuevas consultas para el Tablero
+            var clientes = await _context.Clientes.ToListAsync();
+            var centrosCostos = await _context.CentrosCostos.ToListAsync();
+            var ventas = await _context.Ventas
+                .Include(v => v.Cliente)       // Carga el Cliente de la venta para ver su nombre
+                .Include(v => v.CentroCosto)   // Carga el Centro de Costo de la venta
+                .ToListAsync();
+
+            // 3. Construcción del ViewModel unificado
             var vm = new HomeIndexViewModel
             {
                 Categories = categories,
-                Products = products
+                Products = products,
+                Clientes = clientes,
+                CentrosCostos = centrosCostos,
+                Ventas = ventas
             };
 
             return View(vm);
