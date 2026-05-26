@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // Necesario para Identity
+using Microsoft.AspNetCore.Identity; // Necesario para IdentityUser
 using WebApplication1.Models;
 
 namespace WebApplication1.Data;
 
-public partial class SampleDbContext : DbContext
+// Cambiamos de DbContext a IdentityDbContext<IdentityUser>
+public partial class SampleDbContext : IdentityDbContext<IdentityUser>
 {
     public SampleDbContext()
     {
@@ -16,19 +19,22 @@ public partial class SampleDbContext : DbContext
     {
     }
 
-    // Todas tus tablas del sistema integradas
+    // Tus tablas del sistema POS
     public virtual DbSet<Category> Categories { get; set; }
     public virtual DbSet<CentroCosto> CentrosCostos { get; set; }
     public virtual DbSet<Cliente> Clientes { get; set; }
     public virtual DbSet<Product> Products { get; set; }
     public virtual DbSet<Venta> Ventas { get; set; }
-    public virtual DbSet<DetalleVenta> DetalleVentas { get; set; } // Nueva tabla intermedia
+    public virtual DbSet<DetalleVenta> DetalleVentas { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Server=DESKTOP-UCJMTU8\\SQLEXPRESS;Database=SampleDb;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // ESTO ES OBLIGATORIO para que las tablas de Identity se creen
+        base.OnModelCreating(modelBuilder);
+
         // 1. Configuración de Categorías
         modelBuilder.Entity<Category>(entity =>
         {
@@ -87,7 +93,7 @@ public partial class SampleDbContext : DbContext
                 .HasForeignKey(d => d.ClienteId);
         });
 
-        // 6. Configuración del Detalle de Venta (Productos múltiples)
+        // 6. Configuración del Detalle de Venta
         modelBuilder.Entity<DetalleVenta>(entity =>
         {
             entity.HasKey(e => e.DetalleVentaId);
